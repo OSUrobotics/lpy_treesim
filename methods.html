@@ -1,0 +1,197 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Methods &mdash; treesim_lpy 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Resources" href="resources.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            treesim_lpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="files.html">Files and Directory Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Methods</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#prototype-driven-l-system">Prototype-driven L-System</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tying-pruning-and-supports">Tying, pruning, and supports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-export-pipeline">Batch export pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extending-the-system">Extending the system</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">treesim_lpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Methods</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/methods.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="methods">
+<h1>Methods<a class="headerlink" href="#methods" title="Link to this heading"></a></h1>
+<p><cite>lpy_treesim</cite> marries biologically inspired L-systems with rule-based care
+operations (tying, pruning, support placement) so you can synthesize
+orchard-ready tree geometries. This page explains how the major pieces interact.</p>
+<section id="prototype-driven-l-system">
+<h2>Prototype-driven L-System<a class="headerlink" href="#prototype-driven-l-system" title="Link to this heading"></a></h2>
+<p><cite>base_lpy.lpy</cite> is the only grammar we execute at runtime. Rather than handcode
+every rule, it reads extern variables that point to Python classes in
+<cite>examples/&lt;TreeName&gt;</cite>:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">prototype_dict_path</span></code></dt><dd><p>Imports the shared <cite>basicwood_prototypes</cite> mapping. Each entry contains a
+<cite>TreeBranch</cite> subclass plus its <cite>BasicWoodConfig</cite>, which exposes stochastic
+bending, bud spacing, lengths, and colors.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">trunk_class_path</span></code></dt><dd><p>The entry class that seeds the axiom. All other branches sprout from the
+prototypes configured on this trunk.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">simulation_class_path</span></code> / <code class="docutils literal notranslate"><span class="pre">simulation_config_class_path</span></code></dt><dd><p>Provide training-system-specific behaviors (e.g., UFO trellis vs. Envy
+spindle). The config dataclass is serialized and handed to the runtime
+simulation via <cite>TreeSimulationBase</cite>.</p>
+</dd>
+</dl>
+<p>During each derivation step the grammar delegates to your Python classes to
+decide when buds break, which prototype to spawn, and how to orient each new
+segment. Because everything happens inside Python, you can use NumPy, random
+sampling, and heuristics tailored to your target cultivar.</p>
+</section>
+<section id="tying-pruning-and-supports">
+<h2>Tying, pruning, and supports<a class="headerlink" href="#tying-pruning-and-supports" title="Link to this heading"></a></h2>
+<p>The base simulation loop interleaves three routines:</p>
+<ol class="arabic simple">
+<li><p><strong>Derive</strong>: expand the L-system string using the prototype logic.</p></li>
+<li><dl class="simple">
+<dt><strong>Tie</strong>: after a configurable number of iterations (<cite>num_iteration_tie</cite>), the</dt><dd><p>simulation attaches branches to the virtual support wires generated by
+<cite>TreeSimulationBase.generate_points()</cite>.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><strong>Prune</strong>: after <cite>num_iteration_prune</cite>, branches that exceed thresholds (age,</dt><dd><p>curvature, or spacing) are removed. The decision functions live inside
+<cite>stochastic_tree.py</cite> and can be augmented via your prototypes.</p>
+</dd>
+</dl>
+</li>
+</ol>
+<p>All three phases reuse the <cite>ColorManager</cite> so instance labels remain stable even
+after pruning removes geometry.</p>
+</section>
+<section id="batch-export-pipeline">
+<h2>Batch export pipeline<a class="headerlink" href="#batch-export-pipeline" title="Link to this heading"></a></h2>
+<p><cite>tree_generation/make_n_trees.py</cite> wraps the grammar in a CLI tool:</p>
+<ul class="simple">
+<li><p>Builds a fresh <cite>Lsystem</cite> object per tree and injects the extern dictionary.</p></li>
+<li><dl class="simple">
+<dt>Seeds Python’s RNG per tree so stochastic decisions differ while still being</dt><dd><p>reproducible when <cite>–rng-seed</cite> is provided.</p>
+</dd>
+</dl>
+</li>
+<li><p>Calls <cite>sceneInterpretation</cite> to convert the final string into a PlantGL scene.</p></li>
+<li><dl class="simple">
+<dt>Writes the mesh using <cite>tree_generation.helpers.write</cite>, which emits ASCII PLY</dt><dd><p>with normals and color attributes.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>Dumps <cite>{namespace}_{tree_name}_{index:05d}_colors.json</cite> containing the mapping</dt><dd><p>from instance IDs to semantic roles (spur, branch, trunk, tie, etc.).</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>The naming scheme caps at 99,999 trees per run; start a new namespace if you
+need more.</p>
+</section>
+<section id="extending-the-system">
+<h2>Extending the system<a class="headerlink" href="#extending-the-system" title="Link to this heading"></a></h2>
+<p>To add a brand-new method (new pruning heuristic, new tie behavior), derive from
+the appropriate class in <cite>simulation_base.py</cite> or <cite>stochastic_tree.py</cite> and inject
+your class via the extern dictionary. Because all extern paths are strings,
+<cite>make_n_trees.py</cite> can consume any importable module without further code
+changes.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="resources.html" class="btn btn-neutral float-left" title="Resources" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,339 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Usage &mdash; treesim_lpy 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=d45e8c67"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Files and Directory Structure" href="files.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            treesim_lpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#define-prototypes-deep-dive">1. Define prototypes (deep dive)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configure-simulation-parameters">2. Configure simulation parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-generate-assets">3. Batch-generate assets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inspect-results-optional">4. Inspect results (optional)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="files.html">Files and Directory Structure</a></li>
+<li class="toctree-l1"><a class="reference internal" href="resources.html">Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="methods.html">Methods</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">treesim_lpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<p>The typical workflow for <cite>lpy_treesim</cite> has three stages:</p>
+<ol class="arabic simple">
+<li><p>Describe <strong>prototypes</strong> that capture the botanical building blocks for your
+training system.</p></li>
+<li><p>Provide a <strong>simulation configuration</strong> that tunes derivation length, pruning
+passes, and support layout.</p></li>
+<li><p>Feed both into the CLI generator (<cite>tree_generation/make_n_trees.py</cite>) to
+batch-export <cite>.ply</cite> meshes and color maps.</p></li>
+</ol>
+<p>The following sections walk through each step with concrete file references so
+you can add your own tree families next to the built-in <cite>UFO</cite> example.</p>
+<section id="define-prototypes-deep-dive">
+<h2>1. Define prototypes (deep dive)<a class="headerlink" href="#define-prototypes-deep-dive" title="Link to this heading"></a></h2>
+<p>Prototype files live under <code class="docutils literal notranslate"><span class="pre">examples/&lt;TreeName&gt;/&lt;TreeName&gt;_prototypes.py</span></code>. They
+describe the biological components of your tree by subclassing
+<code class="docutils literal notranslate"><span class="pre">stochastic_tree.TreeBranch</span></code> (ultimately <code class="docutils literal notranslate"><span class="pre">BasicWood</span></code>). Study the existing UFO
+implementation for a concrete template: <code class="docutils literal notranslate"><span class="pre">examples/UFO/UFO_prototypes.py</span></code>.</p>
+<p>The critical building blocks are the four state dataclasses defined in
+<code class="docutils literal notranslate"><span class="pre">stochastic_tree.py</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">LocationState</span></code> tracks the start/end coordinates and the last tie point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TyingState</span></code> stores tie axis, guide points, and the wire to attach to.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GrowthState</span></code> holds thickness increments, per-step growth length, and max
+length.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">InfoState</span></code> carries metadata such as age, order, prunability, and color.</p></li>
+</ul>
+<p>When you instantiate a prototype with <code class="docutils literal notranslate"><span class="pre">BasicWoodConfig</span></code> these states are
+created for you. Your subclass is responsible for overriding the behavioral
+hooks:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">is_bud_break</span></code> decides when a new bud/branch emerges.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_branch</span></code> clones another prototype from <code class="docutils literal notranslate"><span class="pre">basicwood_prototypes</span></code> and
+returns it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pre_bud_rule</span></code> / <code class="docutils literal notranslate"><span class="pre">post_bud_rule</span></code> allow in-place adjustments to growth and
+tying parameters.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">post_bud_rule</span></code> can emit custom L-Py modules (e.g., <code class="docutils literal notranslate"><span class="pre">&#64;O</span></code> for fruiting).</p></li>
+</ul>
+<p>Below is a simplified excerpt from the real UFO spur definition showing how the
+pieces line up:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">stochastic_tree</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicWood</span><span class="p">,</span> <span class="n">BasicWoodConfig</span>
+
+<span class="n">basicwood_prototypes</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Spur</span><span class="p">(</span><span class="n">TreeBranch</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">copy_from</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prototype_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">copy_from</span><span class="p">,</span> <span class="n">prototype_dict</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_bud_break</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_buds_segment</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">num_buds_segment</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">growth</span><span class="o">.</span><span class="n">max_buds_segment</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">rd</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">num_buds_segment</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">growth</span><span class="o">.</span><span class="n">max_buds_segment</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># spurs terminate growth</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">post_bud_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plant_segment</span><span class="p">,</span> <span class="n">simulation_config</span><span class="p">):</span>
+        <span class="n">radius</span> <span class="o">=</span> <span class="n">plant_segment</span><span class="o">.</span><span class="n">growth</span><span class="o">.</span><span class="n">thickness</span> <span class="o">*</span> <span class="n">simulation_config</span><span class="o">.</span><span class="n">thickness_multiplier</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="s1">&#39;@O&#39;</span><span class="p">,</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">radius</span><span class="p">)])]</span>
+
+<span class="n">spur_config</span> <span class="o">=</span> <span class="n">BasicWoodConfig</span><span class="p">(</span>
+    <span class="n">max_buds_segment</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">growth_length</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">cylinder_length</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">thickness</span><span class="o">=</span><span class="mf">0.003</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">bud_spacing_age</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">curve_x_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="n">curve_y_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+    <span class="n">curve_z_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">basicwood_prototypes</span><span class="p">[</span><span class="s1">&#39;spur&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Spur</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">spur_config</span><span class="p">,</span> <span class="n">prototype_dict</span><span class="o">=</span><span class="n">basicwood_prototypes</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Two more classes, <code class="docutils literal notranslate"><span class="pre">Branch</span></code> and <code class="docutils literal notranslate"><span class="pre">Trunk</span></code>, reference the same dictionary when
+spawning children:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Trunk</span><span class="p">(</span><span class="n">TreeBranch</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_branch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">rd</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Branch</span><span class="p">(</span><span class="n">copy_from</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">prototype_dict</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">])</span>
+
+<span class="n">branch_config</span> <span class="o">=</span> <span class="n">BasicWoodConfig</span><span class="p">(</span>
+    <span class="n">tie_axis</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="n">thickness</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">thickness_increment</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">growth_length</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="mi">255</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">bud_spacing_age</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">basicwood_prototypes</span><span class="p">[</span><span class="s1">&#39;branch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Branch</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">branch_config</span><span class="p">,</span> <span class="n">prototype_dict</span><span class="o">=</span><span class="n">basicwood_prototypes</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Key implementation details to replicate:</p>
+<ul class="simple">
+<li><p>Always pass <code class="docutils literal notranslate"><span class="pre">prototype_dict=basicwood_prototypes</span></code> when constructing each
+prototype so clones reference the shared registry.</p></li>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">BasicWoodConfig.tie_axis</span></code> for the classes you expect to tie; the base
+simulation will skip tying for branches whose tie axis is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">BasicWoodConfig.color</span></code> for per-instance labeling—the <code class="docutils literal notranslate"><span class="pre">ColorManager</span></code>
+picks up these RGB triplets and writes them to the <code class="docutils literal notranslate"><span class="pre">*_colors.json</span></code> mapping.</p></li>
+</ul>
+</section>
+<section id="configure-simulation-parameters">
+<h2>2. Configure simulation parameters<a class="headerlink" href="#configure-simulation-parameters" title="Link to this heading"></a></h2>
+<p>The simulator pairs your prototypes with tie/prune logic by subclassing
+<cite>TreeSimulationBase</cite> and <cite>SimulationConfig</cite> (see <cite>simulation_base.py</cite>). Each tree
+family stores both classes in <cite>examples/&lt;TreeName&gt;/&lt;TreeName&gt;_simulation.py</cite>.</p>
+<p>For example, <code class="docutils literal notranslate"><span class="pre">examples/UFO/UFO_simulation.py</span></code> implements both the config and
+the runtime class:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">simulation_base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimulationConfig</span><span class="p">,</span> <span class="n">TreeSimulationBase</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">UFOSimulationConfig</span><span class="p">(</span><span class="n">SimulationConfig</span><span class="p">):</span>
+    <span class="n">num_iteration_tie</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">num_iteration_prune</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span>
+    <span class="n">pruning_age_threshold</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">derivation_length</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">160</span>
+    <span class="n">support_trunk_wire_point</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">)</span>
+    <span class="n">support_num_wires</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">7</span>
+    <span class="n">ufo_x_range</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.65</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">ufo_x_spacing</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span>
+    <span class="n">ufo_z_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.4</span>
+    <span class="n">ufo_y_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">thickness_multiplier</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span>
+    <span class="n">semantic_label</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">UFOSimulation</span><span class="p">(</span><span class="n">TreeSimulationBase</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">generate_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">ufo_x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">ufo_x_range</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">ufo_x_spacing</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],),</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">ufo_z_value</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],),</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">ufo_y_value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">SimulationConfig</span></code> enforces consistent behavior via <code class="docutils literal notranslate"><span class="pre">__post_init__</span></code>—only one
+labeling mode (semantic / instance / per-cylinder) can be true at a time. The
+base class also exposes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">num_iteration_tie</span></code> / <code class="docutils literal notranslate"><span class="pre">num_iteration_prune</span></code>: cadence for maintenance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">energy_distance_weight</span></code> / <code class="docutils literal notranslate"><span class="pre">energy_threshold</span></code>: scoring knobs for the
+branch-to-wire assignment matrix built inside <code class="docutils literal notranslate"><span class="pre">TreeSimulationBase.get_energy_mat</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pruning_age_threshold</span></code>: compared against <code class="docutils literal notranslate"><span class="pre">branch.info.age</span></code> in
+<code class="docutils literal notranslate"><span class="pre">TreeSimulationBase.prune</span></code> before removing geometry via <code class="docutils literal notranslate"><span class="pre">helper.cut_from</span></code>.</p></li>
+</ul>
+<p>On the runtime side, <code class="docutils literal notranslate"><span class="pre">TreeSimulationBase</span></code> supplies ready-to-use algorithms for
+tying, pruning, and support assignment:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">generate_points</span></code> must return the actual wire coordinates used when tie
+curves are computed (<code class="docutils literal notranslate"><span class="pre">BasicWood.update_guide</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tie</span></code> walks the L-system string and calls <code class="docutils literal notranslate"><span class="pre">branch.tie_lstring</span></code> for one
+eligible branch per invocation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prune</span></code> removes untied branches whose age exceeds
+<code class="docutils literal notranslate"><span class="pre">config.pruning_age_threshold</span></code> and whose prototype flag <code class="docutils literal notranslate"><span class="pre">prunable</span></code> is set.</p></li>
+</ul>
+<p>To bring up a new architecture, duplicate the UFO module, rename the classes to
+<code class="docutils literal notranslate"><span class="pre">&lt;TreeName&gt;SimulationConfig</span></code> / <code class="docutils literal notranslate"><span class="pre">&lt;TreeName&gt;Simulation</span></code>, and add any extra
+dataclass fields required for your geometry (wire spacing, tie axis overrides,
+etc.). Ensure the class names match the paths you pass to <code class="docutils literal notranslate"><span class="pre">make_n_trees.py</span></code>.</p>
+<p>Checklist for a new tree type:</p>
+<ol class="arabic simple">
+<li><p>Copy <cite>examples/UFO/UFO_simulation.py</cite> to <cite>examples/&lt;TreeName&gt;/&lt;TreeName&gt;_simulation.py</cite>.</p></li>
+<li><p>Rename the dataclass to <cite>&lt;TreeName&gt;SimulationConfig</cite>.</p></li>
+<li><p>Rename the runtime class to <cite>&lt;TreeName&gt;Simulation</cite> and override any helper
+methods you need.</p></li>
+<li><p>Ensure the module exposes the two symbols with those exact names so the CLI
+resolver can import them.</p></li>
+</ol>
+</section>
+<section id="batch-generate-assets">
+<h2>3. Batch-generate assets<a class="headerlink" href="#batch-generate-assets" title="Link to this heading"></a></h2>
+<p>Once prototypes and simulations exist, the CLI script assembles everything. It
+always loads <cite>base_lpy.lpy</cite> and expects your modules to live inside the
+<cite>examples</cite> package.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>lpy_treesim
+python<span class="w"> </span>lpy_treesim/tree_generation/make_n_trees.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--tree_name<span class="w"> </span>UFO<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--namespace<span class="w"> </span>orchardA<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--num_trees<span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--output_dir<span class="w"> </span>dataset/ufo_batch<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--rng-seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--verbose
+</pre></div>
+</div>
+<p>Important flags:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">--tree_name</span></code></dt><dd><p>The directory under <cite>examples/</cite> that contains both the prototype and
+simulation modules (<cite>examples/UFO</cite>, <cite>examples/Envy</cite>, etc.). The script
+automatically builds module paths such as
+<cite>examples.UFO.UFO_prototypes.basicwood_prototypes</cite>.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--namespace</span></code></dt><dd><p>Prefix for exported files. Meshes are named
+<code class="docutils literal notranslate"><span class="pre">{namespace}_{tree_name}_{index:05d}.ply</span></code> and color maps are suffixed with
+<code class="docutils literal notranslate"><span class="pre">_colors.json</span></code>. Up to 99,999 indices are supported per run.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--rng-seed</span></code></dt><dd><p>Provides reproducible randomness while still using a different seed for each
+tree inside the batch.</p>
+</dd>
+</dl>
+<p>Outputs include:</p>
+<ul class="simple">
+<li><p><cite>.ply</cite> meshes stored in the target directory.</p></li>
+<li><p>JSON color maps emitted by <cite>ColorManager</cite> so downstream segmentation models
+can recover per-instance labeling.</p></li>
+</ul>
+</section>
+<section id="inspect-results-optional">
+<h2>4. Inspect results (optional)<a class="headerlink" href="#inspect-results-optional" title="Link to this heading"></a></h2>
+<p>If you want to watch an individual tree evolve, run the same environment through
+the L-Py GUI:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>lpy
+lpy<span class="w"> </span>lpy_treesim/base_lpy.lpy
+</pre></div>
+</div>
+<p>Inside the GUI, set the extern variables (prototype paths, simulation classes,
+<cite>color_manager</cite>, etc.) to match the CLI defaults or a custom configuration
+dictionary. Use <strong>Animate</strong> rather than <strong>Run</strong> so tying/pruning hooks fire.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="files.html" class="btn btn-neutral float-right" title="Files and Directory Structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright .</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
