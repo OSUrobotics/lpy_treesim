@@ -18,7 +18,7 @@ Set up the L-Py environment
 
    .. code-block:: bash
 
-       conda create -n lpy openalea.lpy plantgl python=3.9 -c fredboudon -c conda-forge
+       conda create -n lpy openalea.lpy python=3.9 -c fredboudon -c conda-forge
 
 2. Activate the environment any time you work on the project:
 
