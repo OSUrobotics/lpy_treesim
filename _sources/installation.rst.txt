@@ -3,12 +3,12 @@ Installation
 
 `lpy_treesim` ships as a Python package plus a collection of L-Py grammars, so
 you need both the OpenAlea/L-Py toolchain and the Python modules in this repo.
+OR you can use the provided Docker container with everything preinstalled.
 
-Prerequisites
+Installing manually
 -------------
 
 - **Conda (recommended)** for installing `openalea.lpy` and PlantGL.
-- **Python 3.9+** for running the helper scripts.
 - A GPU is not required; everything runs on CPU.
 
 Set up the L-Py environment
@@ -48,20 +48,6 @@ that L-Py can import your custom prototypes:
 Editable installs expose modules such as `lpy_treesim.ColorManager` and ensure
 `examples/<tree>` can import the shared base grammar.
 
-Optional tooling
------------------
-
-The repository includes a Sphinx documentation project. To build the docs
-locally install Sphinx, then run `make`:
-
-.. code-block:: bash
-
-    cd lpy_treesim/lpy_treesim/docs
-    pip install sphinx
-    make html
-
-Open `_build/html/index.html` in a browser to preview the rendered docs.
-
 Docker-based installation (GUI + Conda preconfigured)
 -----------------------------------------------------
 
@@ -99,4 +85,20 @@ Notes:
 - The container launches an xterm with the `lpy` conda environment activated.
 - The entrypoint installs the package from `/app` in editable mode so your
     local changes take effect immediately.
+
+
+
+Optional tooling
+-----------------
+
+The repository includes a Sphinx documentation project. To build the docs
+locally install Sphinx, then run `make`:
+
+.. code-block:: bash
+
+    cd lpy_treesim/lpy_treesim/docs
+    pip install sphinx
+    make html
+
+Open `_build/html/index.html` in a browser to preview the rendered docs.
 

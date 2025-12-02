@@ -45,11 +45,11 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-manually">Installing manually</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#set-up-the-l-py-environment">Set up the L-Py environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-lpy-treesim">Install <cite>lpy_treesim</cite></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#optional-tooling">Optional tooling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#docker-based-installation-gui-conda-preconfigured">Docker-based installation (GUI + Conda preconfigured)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-tooling">Optional tooling</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -85,12 +85,12 @@
   <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
 <p><cite>lpy_treesim</cite> ships as a Python package plus a collection of L-Py grammars, so
-you need both the OpenAlea/L-Py toolchain and the Python modules in this repo.</p>
-<section id="prerequisites">
-<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h2>
+you need both the OpenAlea/L-Py toolchain and the Python modules in this repo.
+OR you can use the provided Docker container with everything preinstalled.</p>
+<section id="installing-manually">
+<h2>Installing manually<a class="headerlink" href="#installing-manually" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><strong>Conda (recommended)</strong> for installing <cite>openalea.lpy</cite> and PlantGL.</p></li>
-<li><p><strong>Python 3.9+</strong> for running the helper scripts.</p></li>
 <li><p>A GPU is not required; everything runs on CPU.</p></li>
 </ul>
 </section>
@@ -127,17 +127,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <p>Editable installs expose modules such as <cite>lpy_treesim.ColorManager</cite> and ensure
 <cite>examples/&lt;tree&gt;</cite> can import the shared base grammar.</p>
 </section>
-<section id="optional-tooling">
-<h2>Optional tooling<a class="headerlink" href="#optional-tooling" title="Link to this heading"></a></h2>
-<p>The repository includes a Sphinx documentation project. To build the docs
-locally install Sphinx, then run <cite>make</cite>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>lpy_treesim/lpy_treesim/docs
-pip<span class="w"> </span>install<span class="w"> </span>sphinx
-make<span class="w"> </span>html
-</pre></div>
-</div>
-<p>Open <cite>_build/html/index.html</cite> in a browser to preview the rendered docs.</p>
-</section>
 <section id="docker-based-installation-gui-conda-preconfigured">
 <h2>Docker-based installation (GUI + Conda preconfigured)<a class="headerlink" href="#docker-based-installation-gui-conda-preconfigured" title="Link to this heading"></a></h2>
 <p>If you prefer a containerized setup with a browser-based GUI (noVNC) and a
@@ -171,6 +160,17 @@ docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </sp
 </dl>
 </li>
 </ul>
+</section>
+<section id="optional-tooling">
+<h2>Optional tooling<a class="headerlink" href="#optional-tooling" title="Link to this heading"></a></h2>
+<p>The repository includes a Sphinx documentation project. To build the docs
+locally install Sphinx, then run <cite>make</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>lpy_treesim/lpy_treesim/docs
+pip<span class="w"> </span>install<span class="w"> </span>sphinx
+make<span class="w"> </span>html
+</pre></div>
+</div>
+<p>Open <cite>_build/html/index.html</cite> in a browser to preview the rendered docs.</p>
 </section>
 </section>
 
