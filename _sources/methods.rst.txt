@@ -72,3 +72,32 @@ the appropriate class in `simulation_base.py` or `stochastic_tree.py` and inject
 your class via the extern dictionary. Because all extern paths are strings,
 `make_n_trees.py` can consume any importable module without further code
 changes.
+
+Hierarchy export and labeling
+-----------------------------
+
+The generator can export both mesh geometry and per-instance/semantic labels.
+During derivation the base grammar collects color/material metadata which is
+available via `ColorManager.export_mapping()`.
+
+Outputs typically include:
+
+- ``*.ply``: Mesh for each synthesized tree.
+- ``*_metadata.json``: Mapping from instance IDs/color codes to branch names.
+- ``*_hierarchy.json``: Parent-child branch hierarchy.
+
+To force hierarchy export, set the appropriate flags in your simulation config
+(e.g., `EnvySimulationConfig` or `UFOSimulationConfig`) and pass an output
+directory:
+
+.. code-block:: bash
+
+        python -m lpy_treesim.tree_generation.make_n_trees \
+                --tree_name Envy \
+                --num_trees 10 \
+                --output_dir ./dataset \
+                --rng-seed 42
+
+Under the hood, each branch instance in `basicwood_prototypes` carries color
+and order metadata; the export step writes a hierarchy that maps branch names
+to their instances and materials so downstream tooling can reconstruct the tree.

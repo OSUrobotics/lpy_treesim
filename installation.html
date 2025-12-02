@@ -49,6 +49,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#set-up-the-l-py-environment">Set up the L-Py environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-lpy-treesim">Install <cite>lpy_treesim</cite></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-tooling">Optional tooling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-based-installation-gui-conda-preconfigured">Docker-based installation (GUI + Conda preconfigured)</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
@@ -97,7 +98,7 @@ you need both the OpenAlea/L-Py toolchain and the Python modules in this repo.</
 <h2>Set up the L-Py environment<a class="headerlink" href="#set-up-the-l-py-environment" title="Link to this heading"></a></h2>
 <ol class="arabic">
 <li><p>Create a dedicated environment that contains L-Py and PlantGL:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>lpy<span class="w"> </span>openalea.lpy<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.9<span class="w"> </span>-c<span class="w"> </span>fredboudon<span class="w"> </span>-c<span class="w"> </span>conda-forge
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>lpy<span class="w"> </span>openalea.lpy<span class="o">=</span><span class="m">3</span>.14.1<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.10<span class="w"> </span>-c<span class="w"> </span>fredboudon<span class="w"> </span>-c<span class="w"> </span>conda-forge
 </pre></div>
 </div>
 </li>
@@ -136,6 +137,40 @@ make<span class="w"> </span>html
 </pre></div>
 </div>
 <p>Open <cite>_build/html/index.html</cite> in a browser to preview the rendered docs.</p>
+</section>
+<section id="docker-based-installation-gui-conda-preconfigured">
+<h2>Docker-based installation (GUI + Conda preconfigured)<a class="headerlink" href="#docker-based-installation-gui-conda-preconfigured" title="Link to this heading"></a></h2>
+<p>If you prefer a containerized setup with a browser-based GUI (noVNC) and a
+preconfigured <cite>lpy</cite> environment, use the provided Dockerfile. This is the
+fastest way to get a working L-Py environment without troubleshooting local
+graphics or conda channels.</p>
+<p>Build the image:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>lpy-treesim:ubuntu22<span class="w"> </span>.
+</pre></div>
+</div>
+<p>Run the container (exposing GUI ports and mounting only what you need):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Mount your local repo to /app for editable install, and a dedicated results dir</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span>./results
+docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>lpy-gui<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-p<span class="w"> </span><span class="m">6080</span>:6080<span class="w"> </span>-p<span class="w"> </span><span class="m">5900</span>:5900<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-v<span class="w"> </span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>:/app<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-v<span class="w"> </span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span>/results:/results<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-w<span class="w"> </span>/app<span class="w"> </span>lpy-treesim:ubuntu22
+</pre></div>
+</div>
+<p>Connect to the GUI:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>http://localhost:6080/vnc.html?host=localhost&amp;port=6080
+</pre></div>
+</div>
+<p>Notes:</p>
+<ul class="simple">
+<li><p>The container launches an xterm with the <cite>lpy</cite> conda environment activated.</p></li>
+<li><dl class="simple">
+<dt>The entrypoint installs the package from <cite>/app</cite> in editable mode so your</dt><dd><p>local changes take effect immediately.</p>
+</dd>
+</dl>
+</li>
+</ul>
 </section>
 </section>
 

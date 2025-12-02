@@ -18,7 +18,7 @@ Set up the L-Py environment
 
    .. code-block:: bash
 
-       conda create -n lpy openalea.lpy python=3.9 -c fredboudon -c conda-forge
+       conda create -n lpy openalea.lpy=3.14.1 python=3.10 -c fredboudon -c conda-forge 
 
 2. Activate the environment any time you work on the project:
 
@@ -61,3 +61,42 @@ locally install Sphinx, then run `make`:
     make html
 
 Open `_build/html/index.html` in a browser to preview the rendered docs.
+
+Docker-based installation (GUI + Conda preconfigured)
+-----------------------------------------------------
+
+If you prefer a containerized setup with a browser-based GUI (noVNC) and a
+preconfigured `lpy` environment, use the provided Dockerfile. This is the
+fastest way to get a working L-Py environment without troubleshooting local
+graphics or conda channels.
+
+Build the image:
+
+.. code-block:: bash
+
+        docker build -t lpy-treesim:ubuntu22 .
+
+Run the container (exposing GUI ports and mounting only what you need):
+
+.. code-block:: bash
+
+        # Mount your local repo to /app for editable install, and a dedicated results dir
+        mkdir -p ./results
+        docker run -d --name lpy-gui \
+                -p 6080:6080 -p 5900:5900 \
+                -v ${PWD}:/app \
+                -v ${PWD}/results:/results \
+                -w /app lpy-treesim:ubuntu22
+
+Connect to the GUI:
+
+.. code-block:: text
+
+        http://localhost:6080/vnc.html?host=localhost&port=6080
+
+Notes:
+
+- The container launches an xterm with the `lpy` conda environment activated.
+- The entrypoint installs the package from `/app` in editable mode so your
+    local changes take effect immediately.
+

@@ -46,7 +46,7 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#define-prototypes-deep-dive">1. Define prototypes (deep dive)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#define-prototypes">1. Define prototypes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#configure-simulation-parameters">2. Configure simulation parameters</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#batch-generate-assets">3. Batch-generate assets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#inspect-results-optional">4. Inspect results (optional)</a></li>
@@ -94,8 +94,8 @@ batch-export <cite>.ply</cite> meshes and color maps.</p></li>
 </ol>
 <p>The following sections walk through each step with concrete file references so
 you can add your own tree families next to the built-in <cite>UFO</cite> example.</p>
-<section id="define-prototypes-deep-dive">
-<h2>1. Define prototypes (deep dive)<a class="headerlink" href="#define-prototypes-deep-dive" title="Link to this heading"></a></h2>
+<section id="define-prototypes">
+<h2>1. Define prototypes<a class="headerlink" href="#define-prototypes" title="Link to this heading"></a></h2>
 <p>Prototype files live under <code class="docutils literal notranslate"><span class="pre">examples/&lt;TreeName&gt;/&lt;TreeName&gt;_prototypes.py</span></code>. They
 describe the biological components of your tree by subclassing
 <code class="docutils literal notranslate"><span class="pre">stochastic_tree.TreeBranch</span></code> (ultimately <code class="docutils literal notranslate"><span class="pre">BasicWood</span></code>). Study the existing UFO

@@ -52,6 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#tying-pruning-and-supports">Tying, pruning, and supports</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#batch-export-pipeline">Batch export pipeline</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#extending-the-system">Extending the system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hierarchy-export-and-labeling">Hierarchy export and labeling</a></li>
 </ul>
 </li>
 </ul>
@@ -161,6 +162,31 @@ the appropriate class in <cite>simulation_base.py</cite> or <cite>stochastic_tre
 your class via the extern dictionary. Because all extern paths are strings,
 <cite>make_n_trees.py</cite> can consume any importable module without further code
 changes.</p>
+</section>
+<section id="hierarchy-export-and-labeling">
+<h2>Hierarchy export and labeling<a class="headerlink" href="#hierarchy-export-and-labeling" title="Link to this heading"></a></h2>
+<p>The generator can export both mesh geometry and per-instance/semantic labels.
+During derivation the base grammar collects color/material metadata which is
+available via <cite>ColorManager.export_mapping()</cite>.</p>
+<p>Outputs typically include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">*.ply</span></code>: Mesh for each synthesized tree.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*_metadata.json</span></code>: Mapping from instance IDs/color codes to branch names.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*_hierarchy.json</span></code>: Parent-child branch hierarchy.</p></li>
+</ul>
+<p>To force hierarchy export, set the appropriate flags in your simulation config
+(e.g., <cite>EnvySimulationConfig</cite> or <cite>UFOSimulationConfig</cite>) and pass an output
+directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>lpy_treesim.tree_generation.make_n_trees<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--tree_name<span class="w"> </span>Envy<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--num_trees<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--output_dir<span class="w"> </span>./dataset<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>--rng-seed<span class="w"> </span><span class="m">42</span>
+</pre></div>
+</div>
+<p>Under the hood, each branch instance in <cite>basicwood_prototypes</cite> carries color
+and order metadata; the export step writes a hierarchy that maps branch names
+to their instances and materials so downstream tooling can reconstruct the tree.</p>
 </section>
 </section>
 

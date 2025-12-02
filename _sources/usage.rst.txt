@@ -13,7 +13,7 @@ The typical workflow for `lpy_treesim` has three stages:
 The following sections walk through each step with concrete file references so
 you can add your own tree families next to the built-in `UFO` example.
 
-1. Define prototypes (deep dive)
+1. Define prototypes
 --------------------------------
 
 Prototype files live under ``examples/<TreeName>/<TreeName>_prototypes.py``. They
