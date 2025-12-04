@@ -86,12 +86,27 @@ You can specify labeling options via command-line flags. Only one labeling mode 
 
 If no labeling flag is provided, no labeling is applied to the generated trees.
 
+Removing Intersecting Branches
+------------------------------
+When branches grow they often intersect with each other. Use the post-processing script to remove intersecting branches from the output PLY file:
+
+.. code-block:: bash
+
+   # Remove intersecting branches from a PLY file
+   python -m lpy_treesim.tree_generation.remove_intersecting_branches --ply dataset/lpy_UFO_00000.ply --metadata dataset/lpy_UFO_00000_metadata.json --verbose
+
+   # Save output to a different file
+   python -m lpy_treesim.tree_generation.remove_intersecting_branches --ply input.ply --output cleaned.ply --verbose
+
+The script identifies branches by their color and uses bounding box intersection tests to detect overlapping branches. When intersections are found, the smaller or lower-priority branch is removed (tertiary branches are removed before secondary branches, which are removed before the trunk).
+
 Features
 --------
 
 - **Pruning:** Remove unwanted branches to simulate pruning.
 - **Branch Tying:** Simulate branches being tied down to mimic different orchard architectures.
 - **Labelling:** Get instance and semantic segmentation labels of the mesh
+- **Intersection Removal:** Post-processing to remove intersecting branches from generated meshes
 
 
 Contact
