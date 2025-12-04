@@ -135,7 +135,6 @@ the runtime class:
         ufo_z_value: float = 1.4
         ufo_y_value: float = 0
         thickness_multiplier: float = 1.2
-        semantic_label: bool = True
 
     class UFOSimulation(TreeSimulationBase):
         def generate_points(self):
@@ -148,9 +147,7 @@ the runtime class:
             y = np.full((x.shape[0],), self.config.ufo_y_value)
             return list(zip(x, y, z))
 
-``SimulationConfig`` enforces consistent behavior via ``__post_init__``—only one
-labeling mode (semantic / instance / per-cylinder) can be true at a time. The
-base class also exposes:
+The base class exposes:
 
 * ``num_iteration_tie`` / ``num_iteration_prune``: cadence for maintenance.
 * ``energy_distance_weight`` / ``energy_threshold``: scoring knobs for the
@@ -198,6 +195,7 @@ always loads `base_lpy.lpy` and expects your modules to live inside the
         --num_trees 64 \
         --output_dir dataset/ufo_batch \
         --rng-seed 42 \
+        --semantic-label \
         --verbose
 
 Important flags:
@@ -216,6 +214,22 @@ Important flags:
 ``--rng-seed``
     Provides reproducible randomness while still using a different seed for each
     tree inside the batch.
+
+``--semantic-label``
+    Enable semantic labeling mode. Parts of the tree are labeled by their
+    semantic type (trunk, branch, spur, etc.).
+
+``--instance-label``
+    Enable instance labeling mode. Each individual branch instance receives a
+    unique color for segmentation.
+
+``--per-cylinder-label``
+    Enable per-cylinder labeling mode. Each cylinder in the mesh receives a
+    unique identifier.
+
+.. note::
+    Only one labeling mode can be enabled at a time. If no labeling flag is
+    provided, no labeling is applied to the generated trees.
 
 Outputs include:
 

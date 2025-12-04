@@ -206,7 +206,6 @@ the runtime class:</p>
     <span class="n">ufo_z_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.4</span>
     <span class="n">ufo_y_value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">thickness_multiplier</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.2</span>
-    <span class="n">semantic_label</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">UFOSimulation</span><span class="p">(</span><span class="n">TreeSimulationBase</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">generate_points</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -220,9 +219,7 @@ the runtime class:</p>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">SimulationConfig</span></code> enforces consistent behavior via <code class="docutils literal notranslate"><span class="pre">__post_init__</span></code>—only one
-labeling mode (semantic / instance / per-cylinder) can be true at a time. The
-base class also exposes:</p>
+<p>The base class exposes:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">num_iteration_tie</span></code> / <code class="docutils literal notranslate"><span class="pre">num_iteration_prune</span></code>: cadence for maintenance.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">energy_distance_weight</span></code> / <code class="docutils literal notranslate"><span class="pre">energy_threshold</span></code>: scoring knobs for the
@@ -266,6 +263,7 @@ python<span class="w"> </span>lpy_treesim/tree_generation/make_n_trees.py<span c
 <span class="w">    </span>--num_trees<span class="w"> </span><span class="m">64</span><span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--output_dir<span class="w"> </span>dataset/ufo_batch<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--rng-seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>--semantic-label<span class="w"> </span><span class="se">\</span>
 <span class="w">    </span>--verbose
 </pre></div>
 </div>
@@ -283,7 +281,21 @@ automatically builds module paths such as
 <dt><code class="docutils literal notranslate"><span class="pre">--rng-seed</span></code></dt><dd><p>Provides reproducible randomness while still using a different seed for each
 tree inside the batch.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--semantic-label</span></code></dt><dd><p>Enable semantic labeling mode. Parts of the tree are labeled by their
+semantic type (trunk, branch, spur, etc.).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--instance-label</span></code></dt><dd><p>Enable instance labeling mode. Each individual branch instance receives a
+unique color for segmentation.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">--per-cylinder-label</span></code></dt><dd><p>Enable per-cylinder labeling mode. Each cylinder in the mesh receives a
+unique identifier.</p>
+</dd>
 </dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Only one labeling mode can be enabled at a time. If no labeling flag is
+provided, no labeling is applied to the generated trees.</p>
+</div>
 <p>Outputs include:</p>
 <ul class="simple">
 <li><p><cite>.ply</cite> meshes stored in the target directory.</p></li>
