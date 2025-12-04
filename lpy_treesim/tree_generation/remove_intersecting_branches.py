@@ -16,7 +16,7 @@ from typing import Dict, List, Tuple, Set, Optional
 
 
 def parse_ply(ply_path: str) -> Tuple[List[Tuple[Tuple[float, float, float], Tuple[int, int, int]]], 
-                                       List[List[int]], Dict[str, int], Dict[str, int]]:
+                                       List[List[int]], Dict[str, int], List[str]]:
     """
     Parse an ASCII PLY file and return vertices, faces, and header info.
     
@@ -27,8 +27,8 @@ def parse_ply(ply_path: str) -> Tuple[List[Tuple[Tuple[float, float, float], Tup
         Tuple containing:
         - vertices: List of ((x, y, z), (r, g, b)) tuples
         - faces: List of vertex index lists for each face
-        - header_info: Dict with 'num_vertices' and 'num_faces'
-        - header_lines: Number of lines in the header
+        - header_info: Dict with 'num_vertices', 'num_faces', 'header_end_index'
+        - header_lines: List of header line strings
     """
     with open(ply_path, 'r') as f:
         lines = f.readlines()
@@ -373,7 +373,7 @@ property uchar red
 property uchar green
 property uchar blue
 element face {len(faces)}
-property list uchar int vertex_indices 
+property list uchar int vertex_indices
 end_header'''
 
     with open(output_path, 'w') as f:
@@ -383,7 +383,7 @@ end_header'''
             f.write(f'{x:.4f} {y:.4f} {z:.4f} {r:.0f} {g:.0f} {b:.0f}\n')
         
         for face in faces:
-            f.write(f'{len(face):.0f}')
+            f.write(f'{len(face)}')
             for idx in face:
                 f.write(f' {idx}')
             f.write('\n')
