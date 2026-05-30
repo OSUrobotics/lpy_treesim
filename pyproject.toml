@@ -20,8 +20,13 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 dependencies = [
-    "numpy",
-    "pytest"
+    "noise",
+    "numpy<2",
+    "opencv-python",
+    "pillow",
+    "pytest",
+    "trimesh",
+    "usd-core"
     # Note: openalea.lpy and openalea.plantgl require conda installation
     # See README.rst for setup instructions
 ]
