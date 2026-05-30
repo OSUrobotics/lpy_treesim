@@ -14,11 +14,13 @@ import lpy_mesh_utils as lmu
 
 logger = logging.getLogger(__name__)
 
+pkg_dir = Path(__file__).parent.parent.parent
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Generate and save multiple L-Py trees.")
     parser.add_argument("--num-trees", type=int, default=1, help="Number of trees to generate")
-    parser.add_argument("--stage-dir", type=Path, default=Path("/home/cindy/isaacsim/World"), help="Directory for top of Stage USD files")
-    parser.add_argument("--output-dir", type=Path, default=Path("/home/cindy/VSCode/data/lpy_trees/"), help="Directory for regular mesh outputs")
+    parser.add_argument("--stage-dir", type=Path, default=pkg_dir / "dataset" / "usd", help="Directory for top of Stage USD files")
+    parser.add_argument("--output-dir", type=Path, default=pkg_dir / "dataset" / "meshes", help="Directory for regular mesh outputs")
     parser.add_argument("--tree-name", type=str, default="envy", help="Tree family to generate (UFO/Envy/etc.)")
     parser.add_argument("--texture-name", type=str, default="apple", help="Use/make all textures with this name")
     parser.add_argument("--verbose", action="store_true", help="Print progress details")
