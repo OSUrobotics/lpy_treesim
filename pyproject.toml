@@ -22,9 +22,10 @@ classifiers = [
 dependencies = [
     "noise",
     "numpy<2",
-    "opencv-python",
+    "opencv-python-headless",
     "pillow",
     "pytest",
+    "scipy",
     "trimesh",
     "usd-core"
     # Note: openalea.lpy and openalea.plantgl require conda installation
