@@ -259,7 +259,7 @@ class TreeNamingConvention:
             return []
 
         if not TreeNamingConvention._branch_key() in part_dict["parent_type"]:
-            print(f"Unknown parent type {part_dict["parent_type"]}")
+            print(f"Unknown parent type {part_dict['parent_type']}")
             return []
 
         parent_dict = self.part_list[TreeNamingConvention._branch_key()][part_dict["parent_name"]]

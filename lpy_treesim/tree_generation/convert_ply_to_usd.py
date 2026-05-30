@@ -340,7 +340,7 @@ def create_mesh_usd(stage_context, world_path:str, tree_name:str,
             continue
 
         if len(mesh["vertices"]) == 0:
-            print(f"Skipping {part_dict["name"]}, no mesh parts")
+            print(f"Skipping {part_dict['name']}, no mesh parts")
             continue
 
         # 1 Define the Mesh primitive
