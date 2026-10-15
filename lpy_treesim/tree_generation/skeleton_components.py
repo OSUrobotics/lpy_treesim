@@ -36,83 +36,12 @@ class JunctionComponent:
         self.pt_attach = (0, 0, 0)
         self.vec_along_parent = (0, 0, 0)
         self.vec_branch = (0, 0, 0)
+        self.prev_section_height = 0
         self.ang_attach = 0.0   # Angle from dot product at attach point
         self.radius = 0.0
         self.parent_name = ""
-        self.child_branch_name = ""
-        self.child_spur_name = ""
+        self.child_name = ""
         self.type: JunctionComponent.JunctionType = JunctionComponent.JunctionType.BUD
-
-    def set_attach(self, parent, vertices: list, child):
-        """ Set the closest attachment point and the angle of the attachment
-        This is for use if extracting from a mesh; not used anymore for LPy systems because the values can be set
-        directly from the saved values in the lpy string
-        @param parent/child should be of type SkeletonComponent
-        @param vertices should be an n array of vertices"""
-        # Writing this rather pedantically - project the point onto the line segment and find the closest
-        centers_as_np = np.array(parent.centroids)
-        pt_start = np.array(child.start_pt)
-        vec_start = np.array(child.start_vec)
-
-        t_best = 0.0
-        d_best = 1e30
-        pt_best = child.start_pt
-        ang_attach = 0.0
-        indx_best = 0
-        radius_best = 0.0
-        for indx in range(0, centers_as_np.shape[0] - 1):
-            vec_v = centers_as_np[indx+1, :] - centers_as_np[indx, :]
-            vec_v_len = np.linalg.norm(vec_v)
-            if np.isclose(vec_v_len, 0.0):
-                continue
-            vec_w = pt_start - centers_as_np[indx, :]
-            # Calculate the t along the line, clamped between 0 and 1
-            t = np.dot(vec_w, vec_v) / np.dot(vec_v, vec_v)
-            t = np.clip(t, 0.0, 1.0)
-
-            pt_reconstruct = centers_as_np[indx, :] + vec_v * t
-    
-            dist = np.linalg.norm(pt_start - pt_reconstruct)
-            if dist < d_best:
-                indx_best = indx
-                d_best = dist
-                t_best = parent.t_values[indx] + t * (parent.t_values[indx+1] - parent.t_values[indx])
-                pt_best = (pt_reconstruct[0], pt_reconstruct[1], pt_reconstruct[2])
-                ang_attach = np.dot(vec_v / vec_v_len, vec_start)
-                radius_best = (1 - t) * parent.radii[indx] + t * parent.radii[indx+1]
-
-        self.t_along = float(t_best)
-        self.pt_attach = (float(pt_best[0]), float(pt_best[1]), float(pt_best[2]))   
-        self.ang_attach = float(360.0 * np.acos(ang_attach) / (2.0 * np.pi))
-        self.radius = float(radius_best)  
-        
-        # Now do theta
-        n_around = len(vertices) / centers_as_np.shape[0]
-        n_around = int(n_around)
-        # Just the vertices as indx
-        mesh_vs_as_np = np.zeros((n_around+1, 3))
-        mesh_vs_as_np[0:-1, :] = np.array(vertices[indx_best * n_around:(indx_best+1) * n_around])
-        mesh_vs_as_np[-1, :] = mesh_vs_as_np[0, :]
-        # Project onto this ring
-        theta_best = 0.0
-        d_best = 1e30
-        for indx in range(0, mesh_vs_as_np.shape[0] - 1):
-            vec_v = mesh_vs_as_np[indx+1, :] - mesh_vs_as_np[indx, :]
-            vec_v = vec_v / np.linalg.norm(vec_v)
-            vec_w = pt_start - mesh_vs_as_np[indx, :]
-            # Calculate the t along the line, clamped between 0 and 1
-            t = np.dot(vec_w, vec_v)
-            t = np.clip(t, 0.0, 1.0)
-
-            pt_reconstruct = mesh_vs_as_np[indx, :] + vec_v * t
-    
-            dist = np.linalg.norm(pt_start - pt_reconstruct)
-            if dist < d_best:
-                d_best = dist
-                theta_best = indx * (360.0 / n_around) + t
-    
-        # Convert to theta
-        self.theta_around = float(theta_best)
 
     def create_dict(self) -> dict:
         ret_dict = {"t_along": self.t_along,
@@ -123,8 +52,7 @@ class JunctionComponent:
                     "ang_attach": self.ang_attach,
                     "radius": self.radius,
                     "parent_name": self.parent_name,
-                    "child_branch_name": self.child_branch_name,
-                    "child_spur_name": self.child_spur_name,
+                    "child_name": self.child_name,
                     "type": str(self.type)}
         return ret_dict
 
@@ -137,8 +65,7 @@ class JunctionComponent:
         self.ang_attach = in_dict["ang_attach"]
         self.radius = in_dict["radius"]
         self.parent_name = in_dict["parent_name"]
-        self.child_branch_name = in_dict["child_branch_name"]
-        self.child_spur_name = in_dict["child_spur_name"]
+        self.child_name = in_dict["child_name"]
         # TODO: Fix this
         self.type = JunctionComponent.JunctionType(in_dict["type"])
 

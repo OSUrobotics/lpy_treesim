@@ -238,11 +238,16 @@ class TreeBuilder:
                 vec_parent_dir /= np.linalg.norm(vec_parent_dir)
             else:
                 vec_parent_dir = parent_lpy.location.end_dir
+            new_junction.prev_section_height = 0.0
+            if bud_indx > 0:
+                vec_prev_sec = bud_sites[bud_indx].start_loc - bud_sites[bud_indx-1].start_loc
+                new_junction.prev_section_height = np.linalg.norm(vec_prev_sec)
             new_junction.vec_along_parent = self.convert_vec3_to_tuple(vec_parent_dir)
             new_junction.vec_branch = self.convert_vec3_to_tuple(bud.start_dir)
             new_junction.ang_attach = bud.bud_angle_from_parent
             new_junction.radius = parent_lpy.growth.get_diameter(bud.dist_along)
-            new_junction.parent_name = parent_dict["full_name"]
+            new_junction.parent_name = parent_dict["name"]
+            new_junction.child_name = ""
             if bud.bud_state is BudSite.BudType.PRUNED:
                 new_junction.type = JunctionComponent.JunctionType.PRUNED
             if bud.bud_state is BudSite.BudType.DORMANT:
@@ -250,14 +255,12 @@ class TreeBuilder:
             if bud.branch_child:
                 lpy_child_name = bud.branch_child.name
                 child_dict = mapping_tree_structure[lpy_child_name]
-                tree_child_name = child_dict["name"]
-                new_junction.child_branch_name = tree_child_name
+                new_junction.child_name = child_dict["full_name"]
                 new_junction.type = JunctionComponent.JunctionType.BRANCH
             if bud.spur_child:
                 lpy_child_name = bud.spur_child.name
                 child_dict = mapping_tree_structure[lpy_child_name]
-                tree_child_name = child_dict["name"]
-                new_junction.child_spur_name = tree_child_name
+                new_junction.child_name = child_dict["name"]
                 if bud.branch_child:
                     new_junction.type = JunctionComponent.JunctionType.BRANCH_AND_SPUR
                 else:
@@ -292,7 +295,6 @@ class TreeBuilder:
 
     def _add_skeleton(self,
                       mapping_tree_structure: dict,
-                      mapping_lpy: dict,
                       branch_dict: dict,
                       branch_lpy: BasicWood,
                       bud_sites: list[BudSite]):
@@ -362,10 +364,15 @@ class TreeBuilder:
                                bud_sites=child_list)
                 # This creates the SkeletonComponent for the branch
                 self._add_skeleton(mapping_tree_structure=mapping_tree_structure,
-                                   mapping_lpy=mapping_lpy,
                                    branch_dict=branch_dict,
                                    branch_lpy=branch_lpy,
                                    bud_sites=child_list)
+                for junc in branch_dict["skel"].child_junctions:
+                    if "trunk" in key:
+                        tree.trunk_junctions.append(junc)
+                    else:
+                        tree.branch_junctions.append(junc)
+
 
         return tree, mapping_lpy, mapping_tree_structure
 

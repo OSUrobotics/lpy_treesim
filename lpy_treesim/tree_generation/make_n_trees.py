@@ -8,10 +8,9 @@ import logging
 
 from lpy_treesim.tree_generation.tree_builder_lpy import TreeBuilder
 from lpy_treesim.tree_generation.file_naming_config import FileNamingConfig
-from lpy_treesim.tree_generation.tree_to_usd import create_mesh_usd, check_texture
+from lpy_treesim.tree_generation.tree_to_usd import create_mesh_usd, create_skeleton_usd, check_texture
 from lpy_treesim.textures.generate_texture import make_texture_set, make_uv_texture
 from lpy_treesim.tree_generation.lpy_scene_to_mesh import plant_gl_scene_to_vertices_and_faces, stitch_cylinders, write_mesh
-from lpy_treesim.tree_generation.tree_structure import calculate_skeleton_junctions
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +29,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--obj", action="store_false", help="Write out obj file format")
     parser.add_argument("--meta-data", action="store_true", help="Write out meta data")
     parser.add_argument("--usda", action="store_true", help="Write out universal scene descriptor format")
+    parser.add_argument("--skeleton", action="store_true", help="Write out skeleton as separate usd file")
     parser.add_argument("--make-textures", action="store_true", help="Create a new set of textures")
     args = parser.parse_args()
 
@@ -102,9 +102,6 @@ def main():
         #for key in keys_to_remove:
         #    tree.remove_key(key)
 
-        # Now that the cylinders/skeleton have been processed, build the junctions
-        #calculate_skeleton_junctions(tree=tree)
-
         # Write out mesh file formats
         if args.ply or args.obj:
             mesh_path = args.output_dir / naming.mesh_filename(index, file_type="")
@@ -124,6 +121,12 @@ def main():
                                 tree=tree, 
                                 radii=radii, name_radii=name_radii,
                                 b_use_uv=b_use_uv)
+            if args.skeleton:
+                create_skeleton_usd(stage_context=stage_context,
+                                    world_path=str(args.stage_dir),
+                                    in_tree_name=naming._prefix(index),
+                                    tree=tree,
+                                    level_limit=2)
             logger.info(f"Wrote mesh to {usd_path}")
 
         if args.meta_data:

@@ -31,6 +31,8 @@ and vertex ids to mesh components
 import itertools
 import json
 
+from pandas.io.formats.format import return_docstring
+
 from lpy_treesim.tree_generation.skeleton_components import SkeletonComponent
 from lpy_treesim.tree_generation.tree_naming_convention import TreeNamingConvention
 
@@ -57,6 +59,17 @@ class TreeStructure:
         self.trunk_junctions = []
         self.branch_junctions = []
         self.map_full_name_to_part = {}
+
+    @staticmethod
+    def get_level_from_name(name):
+        if "trunk" in name:
+            return 0
+        elif "branch" in name:
+            if "L" in name:
+                split_name = name.split('-')
+                level_indx = min(int(split_name[1]), len(TreeNamingConvention._component_colors["branch"]) - 1)
+                return level_indx
+        return -1
 
     def instance_color(self, name):
         if "trunk" in name:
@@ -358,14 +371,3 @@ class TreeStructure:
         return ret_dict
     
     # TODO Read in from dictionary
-
-
-def calculate_skeleton_junctions(tree: TreeStructure):
-    """ Once the cylinders have been stitched together, create the junctions from them"""
-    # TODO get junctions etc from bud site
-    return
-    for junction_lists in (tree.trunk_junctions, tree.branch_junctions):
-        for junction in junction_lists:
-            parent_dict = tree.map_full_name_to_part[junction.parent_name]
-            child_dict = tree.map_full_name_to_part[junction.child_name]
-            junction.set_attach(parent_dict["skel"], parent_dict["mesh"], child_dict["skel"])

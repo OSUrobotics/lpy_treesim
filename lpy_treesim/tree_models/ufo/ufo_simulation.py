@@ -31,7 +31,7 @@ class UFOSimulationConfig(SimulationConfig):
     num_wires: int = 6          # Make a bit taller than 5
     x_left: float = 0.0         # Start at the trunk center
     x_right: float = 1.8        # 5-6 ' to the right
-    n_years:int = 6
+    n_years:int = 3
 
 
 class UFOSimulation(TreeSimulationBase):

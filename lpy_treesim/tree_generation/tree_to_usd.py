@@ -1,4 +1,6 @@
 from pxr import Usd, UsdGeom, Gf, UsdSemantics, Sdf, UsdShade, Ar, UsdPhysics
+
+from lpy_treesim.tree_generation.skeleton_components import JunctionComponent
 from lpy_treesim.tree_generation.tree_naming_convention import TreeNamingConvention
 from lpy_treesim.tree_generation.tree_structure import TreeStructure
 
@@ -203,7 +205,7 @@ def create_material_look(stage, material_path, file_dir="../textures/pine_bark_v
     return material
 
 
-def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure):
+def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure, level_limit: int = -1):
     """ One sphere for each junction, one cylinder for each branch/part"""
     skeleton_path = parent_path.AppendChild("skeleton")
     skel_root_xform = UsdGeom.Xform.Define(stage, skeleton_path)
@@ -220,16 +222,44 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure):
     junction_path = skeleton_path.AppendChild("junctions")
     junction_xform = UsdGeom.Xform.Define(stage, junction_path)
     semantic_label = "TrunkJunction"
+    junction_joints = {}
     for junction_list in (tree.trunk_junctions, tree.branch_junctions):
-        for junction in junction_list:
+        for indx, junction in enumerate(junction_list):
             # USD paths can't have -, so replace - with _ and _ with __
-            name = f"{junction.parent_name}__{junction.child_name}".replace("-", "_")
 
-            sphere_path = junction_path.AppendChild(name)
-            sphere = UsdGeom.Sphere.Define(stage, sphere_path)            
+            path_name = f"{junction.parent_name}__{junction.child_name}".replace("-", "_")
+            if junction.type == JunctionComponent.JunctionType.BUD:
+                name = f"{path_name}_bud_{indx:02}"
+            elif junction.type is JunctionComponent.JunctionType.SPUR:
+                name = f"{path_name}_spur_{indx:02}"
+            elif junction.type == JunctionComponent.JunctionType.PRUNED:
+                continue
+            else:
+                name = path_name
+
+            if level_limit != -1:
+                if junction.type is JunctionComponent.JunctionType.SPUR:
+                    continue
+                level = TreeStructure.get_level_from_name(junction.child_name)
+                if level < level_limit:
+                    continue
+
+            joint_info = {"parent_name": path_name,
+                          "loc": junction.pt_attach,
+                          "cyl_index": indx,
+                          "y_ang": junction.ang_attach,
+                          "x_ang": junction.theta_around,
+                          "height": junction.prev_section_height}
+            junction_joints[junction.child_name] = joint_info
+
+            sphere_xform_path = junction_path.AppendChild(name)
+            sphere_xform = UsdGeom.Xform.Define(stage, sphere_xform_path)
+            sphere_path = sphere_xform_path.AppendChild("junc")
+            sphere = UsdGeom.Sphere.Define(stage, sphere_path)
             sphere.CreateRadiusAttr(junction.radius * scl_factor)
-            xformable = UsdGeom.Xformable(sphere)
-            xformable.AddTranslateOp().Set(Gf.Vec3f(junction.pt_attach))
+
+            translate_op = sphere_xform.AddTranslateOp()
+            translate_op.Set(Gf.Vec3f(junction.pt_attach))
 
             # Add collision physics
             UsdPhysics.CollisionAPI.Apply(sphere.GetPrim())
@@ -271,6 +301,19 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure):
 
         # Now add in the cylinders
         skel = tree_part["skel"]
+        skip_first = False
+        if "rootstock" in name:
+            skip_first = True
+        else:
+            joint_info = junction_joints[tree_part["name"]]
+
+            parent_cyls_path = centerlines_path.AppendPath(joint_info['parent_name'])
+            cyl_last_path = parent_cyls_path.AppendPath(f"cyl_{joint_info['cyl_index']}")
+            prev_height = joint_info["height"]
+            x_ang = joint_info["x_ang"]
+            y_ang = joint_info["y_ang"]
+
+        level = TreeStructure.get_level_from_name(tree_part["name"])
         for indx in range(0, len(skel.centroids)-1):
             pt_start = Gf.Vec3d(skel.centroids[indx])
             pt_end = Gf.Vec3d(skel.centroids[indx + 1])
@@ -282,7 +325,8 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure):
             midpoint = pt_start + vec_axis * 0.5
 
             name = f"cyl_{indx}"
-            cyl = UsdGeom.Cylinder.Define(stage, cyls_path.AppendChild(name))
+            cyl_cur_path = cyls_path.AppendChild(name)
+            cyl = UsdGeom.Cylinder.Define(stage, cyl_cur_path)
             if skel.radii[indx] < 0.0:
                 print("Oops")
             cyl.CreateRadiusAttr(skel.radii[indx] * scl_factor)
@@ -310,6 +354,84 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure):
             # I do not know why you have to cast to a float, but you do...
             xformable.AddOrientOp().Set(Gf.Quatf(quat))
 
+            if indx == 0:
+                joint_path = cyl_cur_path.AppendChild(f"BaseJoint_{indx}_{indx+1}")
+            else:
+                joint_path = cyl_cur_path.AppendChild(f"InteriorJoint_{indx}_{indx+1}")
+
+            if not skip_first:
+                joint = UsdPhysics.DistanceJoint.Define(stage, joint_path)
+                joint_prim = joint.GetPrim()
+
+                # Connect the two cylinders
+                joint.GetBody0Rel().AddTarget(cyl_last_path)
+                joint.GetBody1Rel().AddTarget(cyl_cur_path)
+
+                # Anchor points based on ending point of last cylinder
+                joint.GetLocalPos0Attr().Set(Gf.Vec3d(0.0, 0.0, -prev_height * 0.5))
+
+                # Anchor points based on starting point of this cylinder
+                joint.GetLocalPos1Attr().Set(Gf.Vec3d(0.0, 0.0, height * 0.5))
+
+                # 4. Lock all linear translation degrees of freedom (X, Y, Z)
+                # Setting low attribute > high attribute explicitly tells physics solvers to lock the axis.
+                for axis in ["transX", "transY", "transZ"]:
+                    limit_api = UsdPhysics.LimitAPI.Apply(joint_prim, axis)
+                    limit_api.CreateLowAttr(1.0)
+                    limit_api.CreateHighAttr(-1.0)
+
+                # 5. Lock the twist degree of freedom (rotZ)
+                # This prevents twisting along the length of the joint connection
+                twist_limit = UsdPhysics.LimitAPI.Apply(joint_prim, "rotZ")
+                twist_limit.CreateLowAttr(1.0)
+                twist_limit.CreateHighAttr(-1.0)
+
+                # 6. Optional: Set motion limits for swing axes (rotX, rotY)
+                # If omitted entirely, these axes will be completely free (spinning infinitely).
+                # Below, we limit swing freedom to a +/- 45 degree angle:
+                for axis in ["rotX", "rotY"]:
+                    swing_limit = UsdPhysics.LimitAPI.Apply(joint_prim, axis)
+                    if level == 0:
+                        swing_limit.CreateLowAttr(-10.0)
+                        swing_limit.CreateHighAttr(10.0)
+                    elif level == 1:
+                        swing_limit.CreateLowAttr(-20.0)
+                        swing_limit.CreateHighAttr(20.0)
+                    elif level > 1:
+                        swing_limit.CreateLowAttr(-45.0)
+                        swing_limit.CreateHighAttr(45.0)
+                    else:
+                        swing_limit.CreateLowAttr(0.1)
+                        swing_limit.CreateHighAttr(0.1)
+
+                # Apply the DriveAPI to the "linear" degree of freedom to create a Spring
+                # The token argument "linear" controls the distance metric between anchors
+                spring_drive = UsdPhysics.DriveAPI.Apply(joint_prim, "linear")
+
+                # Configure Spring Dynamics
+                spring_drive.CreateTypeAttr("position")  # Computes forces relative to displacement
+                spring_drive.CreateTargetPositionAttr(0.0)
+
+                # Define your desired non-zero target angles (in degrees)
+                target_angles = {
+                    "rotX": x_ang,  # Rests at a 30-degree tilt
+                    "rotY": y_ang  # Rests at a -15-degree tilt
+                }
+
+                for axis, angle in target_angles.items():
+                    spring_drive = UsdPhysics.DriveAPI.Apply(joint_prim, axis)
+                    spring_drive.CreateTypeAttr("position")
+
+                    # Set the non-zero target angle here
+                    spring_drive.CreateTargetPositionAttr(angle)
+
+                spring_drive.CreateStiffnessAttr(1000.0)  # K constant (Spring stiffness)
+                spring_drive.CreateDampingAttr(0.15)  # B constant (Resistive damping)
+
+            prev_height = height
+            cyl_last_path = cyl_cur_path
+            x_ang = 0.0
+            y_ang = 0.0
 
 def create_uv_material(stage, material_path, file_name="../textures/mesh_uv.png"):
     """ For the UV textured mesh, set up the material"""
@@ -441,13 +563,46 @@ def create_mesh_usd(stage_context, world_path:str, in_tree_name:str,
 
     # Spheres for the joints, cylinders for the trunks/branches
     # TODO Make it create collision geometry as well
-    create_skeleton_geometry(stage=stage, tree=tree, parent_path=tree_path)    
+    create_skeleton_geometry(stage=stage, tree=tree, parent_path=tree_path, level_limit=-1)
 
     #  Save the stage
     if b_use_uv:
         file_name = world_path + "/models/" + in_tree_name + "_uv.usda"
     else:
         file_name = world_path + "/models/" + in_tree_name + ".usda"
+    print(f"Saving file to {file_name}")
+    # Actually write out the mesh
+    stage.GetRootLayer().Export(file_name)
+
+
+def create_skeleton_usd(stage_context,
+                        world_path: str, in_tree_name: str,
+                        tree: TreeStructure,
+                        level_limit:int =-1):
+    """ Build JUST a skeleton file for simulation in Isaac sim/newton or Mujoco"""
+    # Create a new USD stage in memory to hold the tree and it's parts
+    with Ar.ResolverContextBinder(stage_context):
+        stage = Usd.Stage.CreateInMemory()
+
+    # Set the up axis to be z and set the units to be in meters
+    UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.z)
+    UsdGeom.SetStageMetersPerUnit(stage, 1.0)
+
+    # The tree's internal absolute path starts with the tree name;
+    #   The actual location of the resulting file will be in world_path
+    # Making the container for the model
+    skeleton_path = Sdf.Path(f'/{in_tree_name}_skeleton')
+    root_xform = UsdGeom.Xform.Define(stage, skeleton_path)
+
+    # This fixes the "Cannot reference... has no default prim" error and makes it
+    #   so this asset can be included in other scenes/stages
+    stage.SetDefaultPrim(root_xform.GetPrim())
+
+    # Spheres for the joints, cylinders for the trunks/branches
+    # TODO Make it create collision geometry as well
+    create_skeleton_geometry(stage=stage, tree=tree, parent_path=skeleton_path, level_limit=level_limit)
+
+    file_name = world_path + "/models/" + in_tree_name + "_skeleton.usda"
     print(f"Saving file to {file_name}")
     # Actually write out the mesh
     stage.GetRootLayer().Export(file_name)

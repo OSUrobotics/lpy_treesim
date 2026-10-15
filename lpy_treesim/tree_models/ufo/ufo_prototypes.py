@@ -77,13 +77,14 @@ def build_basicwood_prototypes(lpy_rng: np.random.Generator = None, sim_config: 
         lpy_rng = np.random.default_rng()
 
     bud_angle_probs = {BudSite.BudType.VEGETATIVE: (15, 35),
-                       BudSite.BudType.FRUITING: (30, 50),
+                       BudSite.BudType.FRUITING: (40, 60),
                        BudSite.BudType.MIXED: (15, 50)}
 
     # Create configs for cleaner prototype setup
     spur_config = BasicWoodConfig(bud_spacing_range=(0.001, 0.002),  # Use for spacing each age_in_years's fruit location
-                                  yearly_growth_range=[(1, 0.1, 0.15), (3, 0.0025, 0.05)],  # Grows 1-2 inches per age_in_years
-                                  taper_amount=0.3,  # Stubby
+                                  yearly_growth_range=[(1, 0.05, 0.1), (3, 0.0025, 0.05)],  # Grows 1-2 inches per age_in_years
+                                  taper_amount=0.5,  # Stubby
+                                  prune_length=0.15,  # Prune past 6 inches
                                   curve_x_range=(-0.02, 0.02),
                                   curve_y_range=(-0.02, 0.02),
                                   num_iter_per_year=sim_config.num_iter_per_year,
@@ -94,7 +95,7 @@ def build_basicwood_prototypes(lpy_rng: np.random.Generator = None, sim_config: 
                                          taper_amount=0.1,    # Gets skinny
                                          prune_length=0.15,   # Prune past 6 inches
                                          bud_angle_probs=bud_angle_probs,
-                                         bud_break_probs=(0.05, 0.5, 0.55),
+                                         bud_break_probs=(0.05, 0.4, 0.45),
                                          curve_x_range=(-0.1, 0.1),
                                          curve_y_range=(-0.1, 0.1),
                                          num_iter_per_year=sim_config.num_iter_per_year,
