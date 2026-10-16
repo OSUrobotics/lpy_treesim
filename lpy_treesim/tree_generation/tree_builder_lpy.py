@@ -246,25 +246,41 @@ class TreeBuilder:
             new_junction.vec_branch = self.convert_vec3_to_tuple(bud.start_dir)
             new_junction.ang_attach = bud.bud_angle_from_parent
             new_junction.radius = parent_lpy.growth.get_diameter(bud.dist_along)
-            new_junction.parent_name = parent_dict["name"]
+            new_junction.parent_name = parent_dict["full_name"]
             new_junction.child_name = ""
             if bud.bud_state is BudSite.BudType.PRUNED:
                 new_junction.type = JunctionComponent.JunctionType.PRUNED
-            if bud.bud_state is BudSite.BudType.DORMANT:
+            elif bud.bud_state is BudSite.BudType.DORMANT:
                 new_junction.type = JunctionComponent.JunctionType.BUD
+            else:
+                if bud.spur_child:
+                    lpy_child_name = bud.spur_child.name
+                    child_dict = mapping_tree_structure[lpy_child_name]
+                    new_junction.child_spur_name = child_dict["full_name"]
+                    new_junction.type = JunctionComponent.JunctionType.BRANCH_AND_SPUR
+                if bud.branch_child:
+                    lpy_child_name = bud.branch_child.name
+                    child_dict = mapping_tree_structure[lpy_child_name]
+                    new_junction.child_branch_name = child_dict["full_name"]
+                    new_junction.type = JunctionComponent.JunctionType.BRANCH
+                for child in [bud.branch_child, bud.spur_child]:
+                    if child:
+                        lpy_child_name = child.name
+                        child_dict = mapping_tree_structure[lpy_child_name]
+                        new_junction.child_name = child_dict["full_name"]
+                    new_junction.type = JunctionComponent.JunctionType.BRANCH
+            if bud.spur_child and bud.branch_child:
+                lpy_child_name = bud.branch_child.name
+                child_dict = mapping_tree_structure[lpy_child_name]
+                new_junction.child_spur_name = child_dict["full_name"]
+                new_junction.type = JunctionComponent.JunctionType.BRANCH
             if bud.branch_child:
                 lpy_child_name = bud.branch_child.name
                 child_dict = mapping_tree_structure[lpy_child_name]
-                new_junction.child_name = child_dict["full_name"]
+                new_junction.child_branch_name = child_dict["full_name"]
                 new_junction.type = JunctionComponent.JunctionType.BRANCH
-            if bud.spur_child:
-                lpy_child_name = bud.spur_child.name
-                child_dict = mapping_tree_structure[lpy_child_name]
-                new_junction.child_name = child_dict["name"]
-                if bud.branch_child:
+                if bud.spur_child:
                     new_junction.type = JunctionComponent.JunctionType.BRANCH_AND_SPUR
-                else:
-                    new_junction.type = JunctionComponent.JunctionType.BRANCH
 
             new_junctions.append(new_junction)
 

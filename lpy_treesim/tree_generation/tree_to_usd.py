@@ -227,7 +227,7 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure, level
         for indx, junction in enumerate(junction_list):
             # USD paths can't have -, so replace - with _ and _ with __
 
-            path_name = f"{junction.parent_name}__{junction.child_name}".replace("-", "_")
+            path_name = f"{junction.parent_name}_".replace("-", "_")
             if junction.type == JunctionComponent.JunctionType.BUD:
                 name = f"{path_name}_bud_{indx:02}"
             elif junction.type is JunctionComponent.JunctionType.SPUR:
@@ -235,22 +235,23 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure, level
             elif junction.type == JunctionComponent.JunctionType.PRUNED:
                 continue
             else:
-                name = path_name
+                name = f"{path_name}__{junction.child_branch_name}_{indx}".replace("-", "_")
 
             if level_limit != -1:
                 if junction.type is JunctionComponent.JunctionType.SPUR:
                     continue
-                level = TreeStructure.get_level_from_name(junction.child_name)
+                level = TreeStructure.get_level_from_name(junction.child_branch_name)
                 if level < level_limit:
                     continue
 
-            joint_info = {"parent_name": path_name,
+            joint_info = {"parent_name": junction.parent_name,
                           "loc": junction.pt_attach,
                           "cyl_index": indx,
                           "y_ang": junction.ang_attach,
                           "x_ang": junction.theta_around,
                           "height": junction.prev_section_height}
-            junction_joints[junction.child_name] = joint_info
+            for child_name in [junction.child_branch_name, junction.child_spur_name]:
+                junction_joints[child_name] = joint_info
 
             sphere_xform_path = junction_path.AppendChild(name)
             sphere_xform = UsdGeom.Xform.Define(stage, sphere_xform_path)
@@ -302,10 +303,10 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure, level
         # Now add in the cylinders
         skel = tree_part["skel"]
         skip_first = False
-        if "rootstock" in name:
+        if tree_part["full_name"] not in junction_joints:
             skip_first = True
         else:
-            joint_info = junction_joints[tree_part["name"]]
+            joint_info = junction_joints[tree_part["full_name"]]
 
             parent_cyls_path = centerlines_path.AppendPath(joint_info['parent_name'])
             cyl_last_path = parent_cyls_path.AppendPath(f"cyl_{joint_info['cyl_index']}")

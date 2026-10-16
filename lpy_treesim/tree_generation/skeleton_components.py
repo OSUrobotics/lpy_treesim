@@ -40,7 +40,8 @@ class JunctionComponent:
         self.ang_attach = 0.0   # Angle from dot product at attach point
         self.radius = 0.0
         self.parent_name = ""
-        self.child_name = ""
+        self.child_branch_name = ""
+        self.child_spur_name = ""
         self.type: JunctionComponent.JunctionType = JunctionComponent.JunctionType.BUD
 
     def create_dict(self) -> dict:
@@ -52,7 +53,8 @@ class JunctionComponent:
                     "ang_attach": self.ang_attach,
                     "radius": self.radius,
                     "parent_name": self.parent_name,
-                    "child_name": self.child_name,
+                    "child_branch_name": self.child_branch_name,
+                    "child_spur_name": self.child_spur_name,
                     "type": str(self.type)}
         return ret_dict
 
