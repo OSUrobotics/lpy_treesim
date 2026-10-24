@@ -394,6 +394,8 @@ IStartBud(bud_name):
   bud = map_name_instance[bud_name]
   nproduce GetPos(bud.start_loc)
   nproduce GetHead(bud.start_dir)
+  nproduce GetLeft(bud.start_left)
+  nproduce GetUp(bud.start_up)
   r, g, b = color_manager.get_unique_color(bud.name)
   nproduce SetColor(r, g, b)
 

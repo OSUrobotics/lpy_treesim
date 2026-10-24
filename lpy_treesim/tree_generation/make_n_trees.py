@@ -126,7 +126,7 @@ def main():
                                     world_path=str(args.stage_dir),
                                     in_tree_name=naming._prefix(index),
                                     tree=tree,
-                                    level_limit=2)
+                                    level_limit=1)
             logger.info(f"Wrote mesh to {usd_path}")
 
         if args.meta_data:

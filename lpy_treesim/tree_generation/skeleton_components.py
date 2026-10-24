@@ -18,7 +18,6 @@ Data kept for the skeleton (if available)
 - mesh faces and vertices (or point cloud) that correspond to each segment
 
 """
-import numpy as np
 from enum import Enum
 
 
@@ -67,18 +66,21 @@ class JunctionComponent:
         self.ang_attach = in_dict["ang_attach"]
         self.radius = in_dict["radius"]
         self.parent_name = in_dict["parent_name"]
-        self.child_name = in_dict["child_name"]
-        # TODO: Fix this
+        self.child_branch_name = in_dict["child_branch_name"]
+        self.child_spur_name = in_dict["child_spur_name"]
         self.type = JunctionComponent.JunctionType(in_dict["type"])
 
 
 class SkeletonComponent:
-    def __init__(self, name:str):
+    def __init__(self, name: str):
         self.name = name
         # Computed from bud sites
-        self.centroids = []
-        self.radii = []
-        self.t_values = []
+        self.centroids: list[tuple[float, float, float]] = []
+        self.radii: list[float] = []
+        self.t_values: list[float] = []
+        self.x_vecs: list[tuple[float, float, float]] = []
+        self.y_vecs: list[tuple[float, float, float]] = []
+        self.z_vecs: list[tuple[float, float, float]] = []
         # Set when parsing branch hierarchy
         self.start_pt = (0, 0, 0)
         self.start_vec = (1, 0, 0)
@@ -86,21 +88,29 @@ class SkeletonComponent:
         self.length = 0.0
         self.child_junctions = []
         # Computed after cylinders are processed
+        # Color based on branch type
+        self.color: tuple[int, int, int] = (0, 0, 0)
+        self.part_name: str = "none"
+        self.heights: list[float] = []
+        self.rotations = []
+        self.euler_angles = []
+        self.level: int = -1
+        self.mass: float = 0.0
 
     def add_junction(self, child_component: JunctionComponent):
         self.child_junctions.append(child_component)
 
-    def create_dict(self) ->dict:
-        ret_dict = {}
-        ret_dict["name"] = self.name
-        ret_dict["centroids"] = self.centroids
-        ret_dict["radii"] = self.radii
-        ret_dict["start_pt"] = self.start_pt
-        ret_dict["start_vec"] = self.start_vec
-        ret_dict["end_pt"] = self.end_pt
-        ret_dict["t_values"] = self.t_values
-        ret_dict["length"] = self.length
-        ret_dict["child_junctions"] = []
+    def create_dict(self) -> dict:
+        ret_dict = {"name": self.name,
+                    "centroids": self.centroids,
+                    "radii": self.radii,
+                    "start_pt": self.start_pt,
+                    "start_vec": self.start_vec,
+                    "end_pt": self.end_pt,
+                    "t_values": self.t_values,
+                    "length": self.length,
+                    "child_junctions": []
+                    }
         for child in self.child_junctions:
             ret_dict["child_junctions"].append(child.create_dict())
         return ret_dict

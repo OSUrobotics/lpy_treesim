@@ -67,7 +67,7 @@ class TreeBuilder:
         return self.__lsystem
 
     @staticmethod
-    def convert_vec3_to_tuple(vec3) -> tuple:
+    def convert_vec3_to_tuple(vec3: Vector3) -> tuple:
         return (float(vec3.x), float(vec3.y), float(vec3.z))
 
     @staticmethod
@@ -327,6 +327,9 @@ class TreeBuilder:
             skel.centroids.append(self.convert_vec3_to_tuple(bud.start_loc))
             skel.radii.append(branch_lpy.growth.get_diameter(bud.dist_along))
             skel.t_values.append(bud.dist_along / branch_lpy.growth.length)
+            skel.x_vecs.append(self.convert_vec3_to_tuple(bud.start_left))
+            skel.y_vecs.append(self.convert_vec3_to_tuple(bud.start_up))
+            skel.z_vecs.append(self.convert_vec3_to_tuple(bud.start_dir))
 
         l = 0.0
         for indx in range(0, 3):

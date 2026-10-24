@@ -36,6 +36,8 @@ class BudSite(ABC):
     # These are filled in when the string is interpreted
     start_loc: Vector3 = None
     start_dir: Vector3 = None
+    start_left: Vector3 = None
+    start_up: Vector3 = None
 
     # Unique name for bud site - parent name + bud and id
     name: str = ""
@@ -61,6 +63,10 @@ class BudSite(ABC):
             self.start_loc = Vector3(0, 0, 0)
         if self.start_dir is None:
             self.start_dir = Vector3(1.0, 0, 0)
+        if self.start_left is None:
+            self.start_left = Vector3(1.0, 0, 0)
+        if self.start_up is None:
+            self.start_up = Vector3(1.0, 0, 0)
 
     def is_dormant_or_pruned(self):
         return self.bud_state is BudSite.BudType.DORMANT or self.bud_state is BudSite.BudType.PRUNED

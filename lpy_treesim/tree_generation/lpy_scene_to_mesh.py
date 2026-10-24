@@ -29,13 +29,16 @@ from trimesh import Trimesh
 from trimesh.visual import TextureVisuals
 
 
-def _add_cylinder(centerline_dict: dict, vs: list):
+def _add_cylinder(centerline_dict: dict, vs: list) -> np.array:
     vs_as_np = np.array(vs)
     centroid = np.mean(vs_as_np, axis=0)
     # Really annoying to cast to float, but otherwise json doesn't work
     centerline_dict["centroids"].append((float(centroid[0]), float(centroid[1]), float(centroid[2])))
+    x_vec = vs_as_np[0, :] - centroid
+    x_vec = x_vec / np.linalg.norm(x_vec)
     radius = float(np.linalg.norm(vs_as_np[0, :] - centroid[:]))
     centerline_dict["radii"].append(radius)
+    return x_vec
 
 
 def _compute_t_values(centerline_dict: dict):
@@ -67,7 +70,7 @@ def _compute_t_values(centerline_dict: dict):
         dist_sum += dist
 
 
-def _stitch_cylinder(cyls: list, col_plant_type: tuple, col_instance: tuple) -> dict:
+def _stitch_cylinder(cyls: list, col_plant_type: tuple, col_instance: tuple) -> (dict, dict):
     """Takes in a list of cylinders (should be in order along the trunk/branch) and makes a single mesh out of it
     Merges the vertices from the previous row with the next to make the mesh seamless
     Adds texture map coordinates
@@ -95,7 +98,13 @@ def _stitch_cylinder(cyls: list, col_plant_type: tuple, col_instance: tuple) -> 
     v_coord = 0.0
     n_split = 8   # Will be over-ridden
 
-    centerline_dict = {"centroids": [], "radii": [], "t_values": [], "length": 0}
+    centerline_dict = {"centroids": [],
+                       "radii": [],
+                       "x_vecs": [],
+                       "y_vecs": [],
+                       "z_vecs": [],
+                       "t_values": [],
+                       "length": 0}
     for cyl in cyls:
         # mesh cylinders that come out of lpy alternate vertices in each ring
         n_split = len(cyl["vertices"]) // 2
@@ -108,7 +117,8 @@ def _stitch_cylinder(cyls: list, col_plant_type: tuple, col_instance: tuple) -> 
         v_coord += v_delta
 
         # Calculate the center and radii of the cylinder
-        _add_cylinder(centerline_dict, mesh_component["vertices"][-n_split:])
+        x_vec = _add_cylinder(centerline_dict, mesh_component["vertices"][-n_split:])
+        centerline_dict["x_vecs"].append(x_vec)
 
         # Re-do the face vertices so they do ring one ring two
         #   Note that these are quads. TriMesh will split to triangles
@@ -154,7 +164,16 @@ def _stitch_cylinder(cyls: list, col_plant_type: tuple, col_instance: tuple) -> 
             # Special-purpose texture coords for extracting the length and theta value from the texture color
             mesh_component["uv_textures"][n_rings * n_split + indx] = (tex_coord[0], t_val)
 
-    return mesh_component
+    z_vec = np.zeros((3,))
+    centroids = centerline_dict["centroids"]
+    for indx, centroid in enumerate(centroids[0:-1]):
+        for j in range(0, 3):
+            z_vec[j] = centroids[indx+1][j] - centroid[j]
+        z_vec = z_vec / np.linalg.norm(z_vec)
+        centerline_dict["z_vecs"].append(z_vec)
+        x_vec = centerline_dict["x_vecs"][indx]
+        centerline_dict["y_vecs"].append(np.cross(z_vec, x_vec))
+    return mesh_component, centerline_dict
 
 
 def stitch_cylinders(tree: TreeStructure) -> (dict, list):
@@ -169,9 +188,9 @@ def stitch_cylinders(tree: TreeStructure) -> (dict, list):
             col_instance = tree.instance_color(part_dict["name"])
             color_to_part["semantic"][str(col_plant_type)] = part_dict["full_name"]
             color_to_part["instance"][str(col_instance)] = part_dict["full_name"]
-            part_dict["mesh"] = _stitch_cylinder(cyls=part_dict["mesh_cyl"],
-                                                 col_plant_type=col_plant_type,
-                                                 col_instance=col_instance)
+            part_dict["mesh"], part_dict["centerline"] = _stitch_cylinder(cyls=part_dict["mesh_cyl"],
+                                                                          col_plant_type=col_plant_type,
+                                                                          col_instance=col_instance)
         else:
             if part_dict['type'] == TreeNamingConvention._root_key():
                 continue
