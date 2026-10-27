@@ -5,6 +5,7 @@ from lpy_treesim.tree_generation.tree_naming_convention import TreeNamingConvent
 from lpy_treesim.tree_generation.tree_structure import TreeStructure
 
 import math
+import numpy as np
 
 
 def create_labeled_asset(file_path):
@@ -250,10 +251,17 @@ def _add_collision_cylinder(stage,
     # Align along z axis
     cyl_shape.CreateAxisAttr("Z")
     x_axis = centerline["x_vecs"][indx]
-    x_axis = Gf.Vec3d(x_axis[0], x_axis[1], x_axis[2])
     y_axis = centerline["y_vecs"][indx]
-    y_axis = Gf.Vec3d(y_axis[0], y_axis[1], y_axis[2])
     z_axis = centerline["z_vecs"][indx]
+    assert np.isclose(np.dot(x_axis, z_axis), 0.0)
+    assert np.isclose(np.dot(x_axis, y_axis), 0.0)
+    assert np.isclose(np.dot(y_axis, z_axis), 0.0)
+    assert np.isclose(np.dot(x_axis, x_axis), 1.0)
+    assert np.isclose(np.dot(y_axis, y_axis), 1.0)
+    assert np.isclose(np.dot(z_axis, z_axis), 1.0)
+
+    x_axis = Gf.Vec3d(x_axis[0], x_axis[1], x_axis[2])
+    y_axis = Gf.Vec3d(y_axis[0], y_axis[1], y_axis[2])
     z_axis = Gf.Vec3d(z_axis[0], z_axis[1], z_axis[2])
     rot_matrix = Gf.Matrix3d(
         x_axis[0], x_axis[1], x_axis[2],
@@ -288,7 +296,7 @@ def _add_collision_cylinder(stage,
     UsdPhysics.CollisionAPI.Apply(cyl_shape.GetPrim())
 
     # Mass by area
-    area = 2.0 * math.pi * skel.radii[indx] * height
+    area = 2.0 * math.pi * radii[indx] * height
     cyl_mass = UsdPhysics.MassAPI.Apply(cyl_xform.GetPrim())
     skel.mass = area * area_mass
     cyl_mass.CreateMassAttr(area * area_mass)
@@ -408,7 +416,7 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure, level
             if "spur" in part_name:
                 continue
         # Don't do geometry below a certain level
-        if level_limit >= 0 and level < level_limit:
+        if level_limit >= 0 and level >= level_limit:
             continue
 
         # Color the cylinder by the tree part
@@ -424,7 +432,7 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure, level
 
     for skel, centerline in zip(skel_parts, centerline_parts):
         # Now add in the cylinders
-        for indx in range(0, len(skel.centroids) - 1):
+        for indx in range(0, len(centerline["centroids"]) - 1):
             _add_collision_cylinder(stage=stage,
                                     path=skeleton_path,
                                     skel=skel,
@@ -442,8 +450,8 @@ def create_skeleton_geometry(stage, parent_path: str, tree: TreeStructure, level
             joint.CreateLocalPos1Attr((0.0, 0.0, height * 0.5))
 
     # Add in a hinge joint for each cylinder
-    for skel in skel_parts:
-        for indx in range(1, len(skel.centroids) - 2):
+    for skel, centerline in zip(skel_parts, centerline_parts):
+        for indx in range(1, len(centerline["centroids"]) - 2):
             _add_hinge_joint(stage=stage,
                              path=skeleton_path,
                              skel=skel,
@@ -580,7 +588,7 @@ def create_mesh_usd(stage_context, world_path:str, in_tree_name:str,
 
     # Spheres for the joints, cylinders for the trunks/branches
     # TODO Make it create collision geometry as well
-    create_skeleton_geometry(stage=stage, tree=tree, parent_path=tree_path, level_limit=-1)
+    # create_skeleton_geometry(stage=stage, tree=tree, parent_path=tree_path, level_limit=-1)
 
     #  Save the stage
     if b_use_uv:
@@ -604,7 +612,7 @@ def create_skeleton_usd(stage_context,
     # Set the up axis to be z and set the units to be in meters
     UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.z)
     UsdGeom.SetStageMetersPerUnit(stage, 1.0)
-    UsdGeom.SetStageKilogramsPerUnit(stage, 1.0)
+    UsdPhysics.SetStageKilogramsPerUnit(stage, 1.0)
 
     # The tree's internal absolute path starts with the tree name;
     #   The actual location of the resulting file will be in world_path
@@ -619,7 +627,13 @@ def create_skeleton_usd(stage_context,
     # Spheres for the joints, cylinders for the trunks/branches
     create_skeleton_geometry(stage=stage, tree=tree, parent_path=skeleton_path, level_limit=level_limit)
 
-    file_name = world_path + "/models/" + in_tree_name + "_skeleton.usda"
+    level_str = ""
+    if level_limit == -2:
+        level_str = "_spur"
+    elif level_limit > -1:
+        level_str = f"_{level_limit}"
+    file_name = world_path + "/models/" + in_tree_name + "_skeleton" + level_str + ".usda"
+
     print(f"Saving file to {file_name}")
     # Actually write out the mesh
     stage.GetRootLayer().Export(file_name)

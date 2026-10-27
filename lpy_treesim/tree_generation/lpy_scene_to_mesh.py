@@ -164,15 +164,25 @@ def _stitch_cylinder(cyls: list, col_plant_type: tuple, col_instance: tuple) -> 
             # Special-purpose texture coords for extracting the length and theta value from the texture color
             mesh_component["uv_textures"][n_rings * n_split + indx] = (tex_coord[0], t_val)
 
-    z_vec = np.zeros((3,))
     centroids = centerline_dict["centroids"]
     for indx, centroid in enumerate(centroids[0:-1]):
+        z_vec = np.zeros((3,))
         for j in range(0, 3):
             z_vec[j] = centroids[indx+1][j] - centroid[j]
-        z_vec = z_vec / np.linalg.norm(z_vec)
+        len_z_vec = np.linalg.norm(z_vec)
+        z_vec = z_vec / len_z_vec
         centerline_dict["z_vecs"].append(z_vec)
         x_vec = centerline_dict["x_vecs"][indx]
-        centerline_dict["y_vecs"].append(np.cross(z_vec, x_vec))
+        y_vec = np.cross(z_vec, x_vec)
+        len_y_vec = np.linalg.norm(y_vec)
+        y_vec = y_vec / len_y_vec
+        centerline_dict["y_vecs"].append(y_vec)
+        assert np.isclose(np.dot(x_vec, z_vec), 0.0)
+        assert np.isclose(np.dot(x_vec, y_vec), 0.0)
+        assert np.isclose(np.dot(y_vec, z_vec), 0.0)
+        assert np.isclose(np.dot(x_vec, x_vec), 1.0)
+        assert np.isclose(np.dot(y_vec, y_vec), 1.0)
+        assert np.isclose(np.dot(z_vec, z_vec), 1.0)
     return mesh_component, centerline_dict
 
 
