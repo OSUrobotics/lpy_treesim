@@ -63,11 +63,11 @@ def _compute_t_values(centerline_dict: dict):
     centerline_dict["length"] = float(np.sum(dists))
     if centerline_dict["length"] > 0.0:
         dists = dists / centerline_dict["length"]
-    centerline_dict["t_values"] = []
+    centerline_dict["t_values"] = [0.0]
     dist_sum = dists[0]
     for dist in dists[1:]:
-        centerline_dict["t_values"].append(float(dist_sum))
         dist_sum += dist
+        centerline_dict["t_values"].append(float(dist_sum))
 
 
 def _stitch_cylinder(cyls: list, col_plant_type: tuple, col_instance: tuple) -> (dict, dict):
